@@ -22,6 +22,20 @@ extern "C" {
 	*/
 	int utf8_mbtowc(conv_t conv, ucs4_t* pwc, const unsigned char* s, size_t n);
 
+	/*
+	*	该函数用于获取输入的utf8字符串由多少个字符组成
+	*
+	*	参数：
+	*		cd			转换器结构体
+	*		s			utf8字符串
+	*
+	*	返回值：
+	*		计算成功	大于等于0的字符串
+	*		计算失败	小于0
+	*
+	*/
+	int utf8_mbRead(conv_t cd, const unsigned char* s);
+
 #ifdef __cplusplus
 }
 #endif	/*  __cplusplus  */
