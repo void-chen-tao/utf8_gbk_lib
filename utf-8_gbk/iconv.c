@@ -9,20 +9,28 @@
 #define utf8_wctomb			(void*)0
 #define CODESCHEMELIMIT		20
 
-
+/*
+*	支持的转码方式字符串
+*/
 static const char* TableOfCodeScheme[] = {
 	"UTF-8",
 	"GBK",
 };
 
+/*
+*	支持的多字节编码转换为宽字节的函数指针
+*/
 static const void* TableOfMBToWC[] = {
 	utf8_mbtowc,
 	gbk_mbtowc,
 };
 
+/*
+*	支持的宽字节转多字节的函数指针
+*/
 static const void* TableOfWCToMB[] = {
 	utf8_wctomb,
-	gbk_wctomb,
+	ces_gbk_wctomb,
 };
 
 static  bool UpperCodeScheme(const char* inbuf, char* outbuf)
@@ -59,26 +67,52 @@ static int GetCharactersNumber(iconv_t cd, const unsigned char* str)
 	return utf8_mbRead(cd, str);
 }
 
+static bool ConfigOutBufferOfConverter(conv_t cd, const unsigned char* inbuf)
+{
+	int num = utf8_mbRead(cd, inbuf);
+	if (num <= 0)
+		return false;
+	else
+	{
+		if (cd->ofuncs.xxx_wctomb == ces_gbk_wctomb)
+		{
+			int gbk_size = num * 2;
+			cd->outbytesleft = gbk_size;
+			cd->outbuf = (char*)malloc(gbk_size * sizeof(char));
+			if (!cd->outbuf)
+				return false;
+			else
+				return true;
+		}
+		return false;
+	}
+}
+
 iconv_t CreateConverter(const char* tocode, const char* fromcode)
 {
+	/*  tocode与fromcode参数不能是空指针  */
 	if (!tocode || !fromcode)
 		return NULL;
 
+	/*  获取tocode和fromcode字符串的大写备份  */
 	char tcbuf[CODESCHEMELIMIT];
 	char fcbuf[CODESCHEMELIMIT];
-	if (!UpperCodeScheme(fromcode, fcbuf) || !UpperCodeScheme(tocode, tcbuf))
+	if (!UpperCodeScheme(tocode, tcbuf) || !UpperCodeScheme(fromcode, fcbuf))
 		return NULL;
 
+	/*  使用tcbuf与fcbuf作为参数分别查找转码表，看是否是当前程序所支持的编码和转码方式  */
 	int fc_index, tc_index;
 	tc_index = GetCodeSchemeIndex(tcbuf);
 	fc_index = GetCodeSchemeIndex(fcbuf);
 	if (tc_index == -1 || fc_index == -1)
 		return NULL;
 
+	/*  创建转化器结构体  */
 	conv_t cd = malloc(sizeof(struct conv_struct));
 	if (!cd)
 		return NULL;
 
+	/*  结构体初始化  */
 	memset(cd, '\0', sizeof(struct conv_struct));
 	cd->lfuncs.loop_convert = &LoopConvert;
 	cd->lfuncs.loop_reset = &LoopReset;
@@ -100,18 +134,17 @@ bool RunConverter(iconv_t icd, const unsigned char* inbuf)
 		return false;
 
 	conv_t cd = (conv_t)icd;
-	if (inbuf == NULL)
+	if (inbuf == NULL || *inbuf == '\0')
 		return cd->lfuncs.loop_reset(cd, &cd->outbuf, &cd->outbytesleft);
 	else
 	{
-		int num = GetCharactersNumber(cd, inbuf);
-		if (num <= 0)
+		if (ConfigOutBufferOfConverter(cd, inbuf))
+		{
+			size_t inbuflen = strlen(inbuf);
+			return cd->lfuncs.loop_convert(cd, &inbuf, &inbuflen, &cd->outbuf, &cd->outbytesleft);
+		}
+		else
 			return cd->lfuncs.loop_reset(cd, &cd->outbuf, &cd->outbytesleft);
-		cd->outbytesleft = (size_t)num * (size_t)2;
-		cd->outbuf = (char*)malloc((size_t)cd->outbytesleft * sizeof(char));
-
-		size_t inbuflen = strlen(inbuf);
-		return cd->lfuncs.loop_convert(cd, &inbuf, &inbuflen, &cd->outbuf, &cd->outbytesleft);
 	}
 }
 
@@ -125,4 +158,10 @@ bool DestroyConverter(iconv_t icd)
 	free(cd);
 
 	return true;
+}
+
+const unsigned char* ReadOutPutINFO(iconv_t icd)
+{
+	conv_t cd = (conv_t)icd;
+	return cd->outbuf;
 }

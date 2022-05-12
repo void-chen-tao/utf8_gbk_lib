@@ -56,10 +56,10 @@ int utf8_mbRead(conv_t cd, const unsigned char* s)
 	if (!s || cd->ifuncs.xxx_mbtowc != utf8_mbtowc)
 		return -1;
 
-	int step;							//	用于更新指针和utf8_remain_count剩余的步长
-	int utf8_count;						//	utf8字符串计数统计
-	char* move_p = s;					//	移动指针
-	int utf8_remain_count = strlen(s);	//	读取step长度后剩余char空间的长度计数
+	int step;									//	用于更新指针和utf8_remain_count剩余的步长
+	int utf8_count;								//	utf8字符串计数统计
+	const unsigned char* move_p = s;			//	移动指针
+	int utf8_remain_count = (size_t)strlen(s);	//	读取step长度后剩余char空间的长度计数
 
 	for (utf8_count = 0; *s;)
 	{

@@ -35,6 +35,17 @@ extern "C" {
 	*/
 	bool RunConverter(iconv_t icd, const unsigned char* str);
 
+	/*
+	*	该函数用于获取RunConverter函数执行后的结果
+	* 
+	*	参数：
+	*		icd			转换器
+	*		
+	*	返回值：
+	*		转换器输出缓冲区指针，转换成功字符串有效，否则为空字符串。
+	* 
+	*/
+	const unsigned char* ReadOutPutINFO(iconv_t icd);
 
 	/*
 	*	当前函数用于管理iconv_t的动态内存(heap)

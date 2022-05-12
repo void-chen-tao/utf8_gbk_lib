@@ -9,6 +9,8 @@
 *====================================================*/
 #include <stdio.h>
 #include <limits.h>
+#include <stdbool.h>
+#include <string.h>
 
 
 
@@ -85,8 +87,9 @@ struct mbtowc_funcs {
  *	转换器的任务函数
  */
 struct loop_funcs {
-	size_t(*loop_convert) (conv_t cd, const char** inbuf, size_t* inbytesleft, char** outbuf, size_t* outbytesleft);
-	size_t(*loop_reset) (conv_t cd, char** outbuf, size_t* outbytesleft);
+	bool(*loop_convert) (conv_t cd, const char** inbuf, size_t* inbytesleft, char** outbuf, size_t* outbytesleft);
+	bool(*loop_reset) (conv_t cd, char** outbuf, size_t* outbytesleft);
+	//bool(*loop_reset)(conv_t cd);
 };
 
 
@@ -146,7 +149,7 @@ struct conv_struct {
 	state_t ostate;									//	the state of struct mbtowc_func: 1 --- waitting、0 --- no error occur、-1 --- error
 	/* error buffer */
 	state_t error_info;								//	store error return of function
-	char* outbuf;
+	unsigned char* outbuf;
 	size_t outbytesleft;
 };
 
@@ -158,19 +161,19 @@ extern "C" {
 	*	清理输出缓冲区任务——当前是静态缓冲区，所以不会执行清理工作
 	* 
 	*		返回值：
-	*			0			no error
-	*			1			error
+	*			true		function is called no error
+	*			false		function is called error
 	*/
-	size_t LoopReset(conv_t cd, char** outbuf, size_t* outbytesleft);
+	bool LoopReset(conv_t cd, char** outbuf, size_t* outbytesleft);
 
 	/*
 	*	转码任务——
 	* 
 	*		返回值：
-	*			0			no error
-	*			1			error
+	*			true			no error
+	*			flase			error
 	*/
-	size_t LoopConvert(conv_t cd, const char** inbuf, size_t* inbytesleft, char** outbuf, size_t* outbytesleft);
+	bool LoopConvert(conv_t cd, const char** inbuf, size_t* inbytesleft, char** outbuf, size_t* outbytesleft);
 
 #ifdef __cplusplus
 }

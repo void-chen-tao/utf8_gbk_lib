@@ -2,49 +2,92 @@
 #include "converters.h"
 
 
-size_t LoopReset(conv_t cd, char** outbuf, size_t* outbytesleft)
+//	OLD Version:
+bool LoopReset(conv_t cd, char** outbuf, size_t* outbytesleft)
 {
 	/*  函数运行状态  */
-	state_t result = 1;
-	if (outbuf == NULL || *outbuf == NULL)
+	bool result = false;
+	if (outbuf == NULL || *outbuf == '\0')
 	{
-		//	表明没有输入也没有输出，所以将输入输出函数的标志位设置为空
-		memset(&cd->istate, '\0', sizeof(state_t));
-		memset(&cd->ostate, '\0', sizeof(state_t));
-		return result = 0;
+		//	结构体清零
+		memset(cd, '\0', sizeof(struct conv_struct));
+		return result = true;
 	}
 	else
 	{
-		if (cd->ifuncs.xxx_flushwc)
-		{
-			//	如果存在清除输入缓冲区函数，执行输入缓冲区清理函数
-			//	主要是释放动态申请的内存空间
-			if (cd->ifuncs.xxx_flushwc(cd, *outbuf) == 0)
-				cd->istate = 0;
-			else
-			{
-				cd->istate = -1;
-				return result = 1;
-			}
-		}
-		if (cd->ofuncs.xxx_reset)
-		{
-			//	如果存在清除输出缓冲区函数，执行输出缓冲区清理函数
-			//	主要是释放动态申请的内存空间
-			if (cd->ofuncs.xxx_reset(cd, *outbuf, *outbytesleft) == 0)
-				cd->ostate = 0;
-			else
-			{
-				cd->ostate = -1;
-				return result = 1;
-			}
-		}
-		return result = 0;
+		//if (cd->ifuncs.xxx_flushwc)
+		//{
+		//	//	如果存在清除输入缓冲区函数，执行输入缓冲区清理函数
+		//	//	主要是释放动态申请的内存空间
+		//	if (cd->ifuncs.xxx_flushwc(cd, *outbuf) == 0)
+		//		cd->istate = 0;
+		//	else
+		//	{
+		//		cd->istate = -1;
+		//		return result = 1;
+		//	}
+		//}
+		//if (cd->ofuncs.xxx_reset)
+		//{
+		//	//	如果存在清除输出缓冲区函数，执行输出缓冲区清理函数
+		//	//	主要是释放动态申请的内存空间
+		//	if (cd->ofuncs.xxx_reset(cd, *outbuf, *outbytesleft) == 0)
+		//		cd->ostate = 0;
+		//	else
+		//	{
+		//		cd->ostate = -1;
+		//		return result = 1;
+		//	}
+		//}
+		//return result = 0;
+		return result;
 	}
 }
 
+////	NEW Version
+//bool LoopReset(conv_t cd)
+//{
+//	/*  函数运行状态  */
+//	bool result = false;
+//	if (&cd->outbuf == NULL || cd->outbuf == '\0')
+//	{
+//		//	结构体清零
+//		memset(cd, '\0', sizeof(struct conv_struct));
+//		return result = true;
+//	}
+//	else
+//	{
+//		//if (cd->ifuncs.xxx_flushwc)
+//		//{
+//		//	//	如果存在清除输入缓冲区函数，执行输入缓冲区清理函数
+//		//	//	主要是释放动态申请的内存空间
+//		//	if (cd->ifuncs.xxx_flushwc(cd, *outbuf) == 0)
+//		//		cd->istate = 0;
+//		//	else
+//		//	{
+//		//		cd->istate = -1;
+//		//		return result = 1;
+//		//	}
+//		//}
+//		//if (cd->ofuncs.xxx_reset)
+//		//{
+//		//	//	如果存在清除输出缓冲区函数，执行输出缓冲区清理函数
+//		//	//	主要是释放动态申请的内存空间
+//		//	if (cd->ofuncs.xxx_reset(cd, *outbuf, *outbytesleft) == 0)
+//		//		cd->ostate = 0;
+//		//	else
+//		//	{
+//		//		cd->ostate = -1;
+//		//		return result = 1;
+//		//	}
+//		//}
+//		//return result = 0;
+//		return result;
+//	}
+//}
 
-size_t LoopConvert(conv_t cd, const char** inbuf, size_t* inbytesleft, char** outbuf, size_t* outbytesleft)
+
+bool LoopConvert(conv_t cd, const char** inbuf, size_t* inbytesleft, char** outbuf, size_t* outbytesleft)
 {
 	/*
 	*   输入参数备份——因为其中涉及到了指针的移动
@@ -56,7 +99,7 @@ size_t LoopConvert(conv_t cd, const char** inbuf, size_t* inbytesleft, char** ou
 	*   outptr  ——  outbuf
 	*   ouleft  ——  outbuf
 	*/
-	size_t result = 0;
+	bool result = true;
 	const unsigned char* inptr = (const unsigned char*)*inbuf;
 	size_t inleft = *inbytesleft;
 	unsigned char* outptr = (unsigned char*)*outbuf;
@@ -78,7 +121,8 @@ size_t LoopConvert(conv_t cd, const char** inbuf, size_t* inbytesleft, char** ou
 				//	解码转换失败
 				cd->error_info = incount;
 				cd->istate = -1;
-				return result = -1;
+				result = false;
+				return result;
 			}
 			else
 			{
@@ -89,7 +133,8 @@ size_t LoopConvert(conv_t cd, const char** inbuf, size_t* inbytesleft, char** ou
 					//	输出缓存不足
 					cd->error_info = RET_NOENOUGH;
 					cd->ostate = -1;
-					return result = -1;
+					result = false;
+					return result;
 				}
 				else
 				{
@@ -99,7 +144,8 @@ size_t LoopConvert(conv_t cd, const char** inbuf, size_t* inbytesleft, char** ou
 					{
 						cd->error_info = outcount;
 						cd->ostate = -1;
-						return result = -1;
+						result = false;
+						return result;
 					}
 					else
 					{
@@ -108,7 +154,8 @@ size_t LoopConvert(conv_t cd, const char** inbuf, size_t* inbytesleft, char** ou
 							//	输出缓存太小
 							cd->error_info = RET_TOOSMALL;
 							cd->ostate = -1;
-							return result = -1;
+							result = false;
+							return result;
 						}
 						else
 						{
@@ -124,12 +171,16 @@ size_t LoopConvert(conv_t cd, const char** inbuf, size_t* inbytesleft, char** ou
 				}
 			}
 		}
-		*inbuf = (const char*)inptr;
+		*outptr = '\0';
+		/**inbuf = (const char*)inptr;
 		*inbytesleft = inleft;
-		*outbuf = (char*)outptr;
+		*outbuf = (char*)outptr;*/
 		*outbytesleft = outleft;
 		return result;
 	}
 	else
-		return result = 1;
+	{
+		result = false;
+		return result;
+	}
 }
