@@ -1,0 +1,69 @@
+# Prerequisites
+*.d
+
+# Compiled Object files
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+build/
+build.gcc/
+/release
+Debug/
+Release/
+*.tlog
+*.pdb
+*.opendb
+*.log
+*.db
+*.ilk
+*.cache
+.suo
+install_manifest.txt
+/CMakeFiles
+/cmake_install.cmake
+/CMakeCache.txt
+/project.gcc
+project.vs2015/
+.project
+.cproject
+/.vscode
+/test_package/cmake-build-release
+/test_package/cmake-build-debug
+/test_package/conaninfo.txt
+/test_package/conan.lock
+/test_package/conanbuildinfo.txt
+/test_package/build
+/test_package/graph_info.json
+/build
+/*.cmake
+/conan.lock
+/conanbuildinfo.txt
+/conaninfo.txt
+/graph_info.json
+/cmake-build-debug
+/cmake-build-release
